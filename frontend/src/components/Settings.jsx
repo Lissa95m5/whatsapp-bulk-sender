@@ -42,6 +42,21 @@ export function Settings() {
     }
   };
 
+  const handleSaveBaileys = async () => {
+    setIsSaving(true);
+    try {
+      await axios.post(`${API}/settings/provider`, {
+        provider: 'baileys',
+        ...baileysConfig
+      });
+      toast.success('WhatsApp Business API settings saved successfully');
+    } catch (error) {
+      toast.error(`Failed to save settings: ${error.response?.data?.detail || error.message}`);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6" data-testid="settings-page">
       <div>
