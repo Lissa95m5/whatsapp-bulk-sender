@@ -1,0 +1,114 @@
+{
+  "design_system": {
+    "name": "Tactical Command",
+    "description": "A high-density, professional interface designed for bulk messaging efficiency. Prioritizes data visibility, clear status indicators, and a 'mission control' aesthetic.",
+    "theme_strategy": "hybrid",
+    "theme_default": "light",
+    "typography": {
+      "font_family": {
+        "heading": "Plus Jakarta Sans, sans-serif",
+        "body": "Inter, sans-serif",
+        "mono": "JetBrains Mono, monospace"
+      },
+      "scale": {
+        "h1": "text-4xl font-bold tracking-tight",
+        "h2": "text-3xl font-semibold tracking-tight",
+        "h3": "text-2xl font-semibold tracking-tight",
+        "body_lg": "text-lg leading-relaxed",
+        "body_base": "text-base leading-normal",
+        "body_sm": "text-sm leading-normal",
+        "caption": "text-xs text-muted-foreground uppercase tracking-wider"
+      }
+    },
+    "colors": {
+      "primary": {
+        "name": "Tactical Emerald",
+        "hex": "#059669",
+        "tailwind": "bg-emerald-600 text-white hover:bg-emerald-700"
+      },
+      "secondary": {
+        "name": "Deep Zinc",
+        "hex": "#18181B",
+        "tailwind": "bg-zinc-950 text-white hover:bg-zinc-900"
+      },
+      "accent": {
+        "name": "Alert Amber",
+        "hex": "#F59E0B",
+        "tailwind": "text-amber-500 bg-amber-50 border-amber-200"
+      },
+      "background": {
+        "light": "#FFFFFF",
+        "dark": "#09090B"
+      },
+      "surface": {
+        "light": "#F4F4F5",
+        "dark": "#18181B"
+      }
+    },
+    "layout": {
+      "container": "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8",
+      "grid_dashboard": "grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4",
+      "grid_marketing": "grid grid-cols-1 md:grid-cols-12 gap-8",
+      "spacing": {
+        "section": "py-12 md:py-24",
+        "component": "p-6"
+      }
+    },
+    "components": {
+      "buttons": {
+        "primary": "bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm rounded-md px-4 py-2 font-medium transition-all active:scale-95",
+        "secondary": "bg-white text-zinc-900 border border-zinc-200 hover:bg-zinc-50 shadow-sm rounded-md px-4 py-2 font-medium transition-all active:scale-95",
+        "ghost": "hover:bg-zinc-100 text-zinc-600 hover:text-zinc-900 rounded-md px-4 py-2 transition-colors"
+      },
+      "cards": {
+        "base": "bg-card text-card-foreground rounded-lg border shadow-sm",
+        "hover": "hover:shadow-md transition-shadow duration-200"
+      },
+      "inputs": {
+        "base": "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+      }
+    },
+    "visual_enhancers": {
+      "glassmorphism": "backdrop-blur-md bg-white/70 border border-white/20 shadow-sm",
+      "gradients": "bg-gradient-to-br from-emerald-50 to-zinc-50",
+      "shadows": "shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+    },
+    "motion": {
+      "hover": "transition-all duration-200 ease-in-out",
+      "enter": "animate-in fade-in zoom-in-95 duration-300",
+      "exit": "animate-out fade-out zoom-out-95 duration-200"
+    }
+  },
+  "image_urls": {
+    "hero_background": "https://images.unsplash.com/photo-1765046255500-ce203b84c307?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "login_background": "https://images.unsplash.com/photo-1765046255517-412341954c4c?crop=entropy&cs=srgb&fm=jpg&q=85",
+    "avatars": [
+      "https://images.unsplash.com/photo-1589220286904-3dcef62c68ee?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "https://images.unsplash.com/photo-1575299833801-85ce40813bac?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "https://images.unsplash.com/photo-1657771072153-878f8b0ce74a?crop=entropy&cs=srgb&fm=jpg&q=85"
+    ],
+    "placeholders": {
+      "logo": "https://images.unsplash.com/photo-1655210912605-dce274855925?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "office": "https://images.unsplash.com/photo-1718220216044-006f43e3a9b1?crop=entropy&cs=srgb&fm=jpg&q=85"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Use 'Plus Jakarta Sans' for all headings to give a modern, geometric feel.",
+    "Use 'JetBrains Mono' for all data points (message counts, IDs, timestamps) to reinforce the 'tactical' aesthetic.",
+    "Implement a 'High Density' mode for the contact list table: reduce padding, use smaller fonts (text-sm), and ensure maximum data visibility.",
+    "For the Dashboard, use a 'Bento Grid' layout: mix large summary cards with smaller status indicators.",
+    "Use the 'Tactical Emerald' (#059669) sparingly for primary actions (Send, Save) and success states. Do not overuse it.",
+    "Ensure all interactive elements have a `data-testid` attribute for testing.",
+    "Use 'sonner' for all toast notifications.",
+    "For the 'Message Composer', ensure the text area is large and distraction-free, with a clear character count indicator.",
+    "Implement a 'Dark Mode' toggle in the settings or sidebar.",
+    "Use the provided 'abstract network' images for the login/signup page backgrounds to create a tech-forward vibe."
+  ],
+  "universal_guidelines": [
+    "Do not use generic 'Inter' for headings.",
+    "Avoid full-screen gradients; use subtle textures or solid colors.",
+    "Ensure high contrast for text readability (WCAG AA).",
+    "Use 2-3x more spacing than typical designs for 'breathing room' in the marketing sections, but keep the app dashboard dense.",
+    "Add micro-interactions to all buttons and inputs (hover, focus, active states)."
+  ]
+}
