@@ -104,7 +104,7 @@ export function MessageComposer() {
         message_body: messageBody,
         media_attachments: mediaAttachments,
         campaign_name: campaignName || undefined,
-        provider: 'twilio'
+        provider: provider
       });
 
       toast.success(`Messages sent! ${response.data.successful} successful, ${response.data.failed} failed`);
