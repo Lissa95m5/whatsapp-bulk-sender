@@ -1,5 +1,5 @@
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorDatabase
-import os
+from config import get_settings
 
 class Database:
     client: AsyncIOMotorClient = None
@@ -11,10 +11,9 @@ async def get_database() -> AsyncIOMotorDatabase:
     return db_instance.db
 
 async def connect_to_mongo():
-    mongo_url = os.environ['MONGO_URL']
-    db_name = os.environ['DB_NAME']
-    db_instance.client = AsyncIOMotorClient(mongo_url)
-    db_instance.db = db_instance.client[db_name]
+    settings = get_settings()
+    db_instance.client = AsyncIOMotorClient(settings.MONGO_URL)
+    db_instance.db = db_instance.client[settings.DB_NAME]
     
     # Create indexes
     await db_instance.db.messages.create_index("created_at")
