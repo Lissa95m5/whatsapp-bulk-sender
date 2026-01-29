@@ -23,6 +23,7 @@ export function MessageComposer() {
   const [selectedContacts, setSelectedContacts] = useState([]);
   const [isSending, setIsSending] = useState(false);
   const [campaignName, setCampaignName] = useState('');
+  const [provider, setProvider] = useState('twilio');
 
   useEffect(() => {
     fetchContacts();
