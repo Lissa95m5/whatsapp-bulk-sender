@@ -145,6 +145,24 @@ export function MessageComposer() {
           </div>
 
           <div>
+            <Label htmlFor="provider">WhatsApp Provider</Label>
+            <Select value={provider} onValueChange={setProvider}>
+              <SelectTrigger id="provider" className="mt-1" data-testid="provider-select">
+                <SelectValue placeholder="Select provider" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="twilio" data-testid="provider-twilio">Twilio WhatsApp API</SelectItem>
+                <SelectItem value="baileys" data-testid="provider-baileys">WhatsApp Business API (Baileys)</SelectItem>
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-zinc-500 mt-1">
+              {provider === 'twilio' 
+                ? 'Official Twilio API - requires configuration in Settings' 
+                : 'Personal WhatsApp - requires QR code authentication'}
+            </p>
+          </div>
+
+          <div>
             <Label htmlFor="message-body">Message</Label>
             <Textarea
               id="message-body"
