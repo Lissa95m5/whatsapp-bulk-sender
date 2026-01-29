@@ -558,6 +558,231 @@ async def twilio_status_webhook(
         logger.error(f"Error processing webhook: {str(e)}")
         return {"status": "error", "detail": str(e)}
 
+# n8n Integration Endpoints
+@api_router.post("/n8n/send-message")
+async def n8n_send_message(
+    request: dict,
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    n8n compatible endpoint for sending WhatsApp messages
+    
+    Request body:
+    {
+        "phone_number": "+1234567890",
+        "message": "Your message here",
+        "media_urls": ["https://example.com/image.jpg"] (optional),
+        "provider": "twilio" (optional, defaults to twilio)
+    }
+    """
+    try:
+        phone_number = request.get("phone_number")
+        message = request.get("message")
+        media_urls_str = request.get("media_urls", [])
+        provider = request.get("provider", "twilio")
+        
+        if not phone_number or not message:
+            raise HTTPException(status_code=400, detail="phone_number and message are required")
+        
+        # Ensure media_urls is a list
+        if isinstance(media_urls_str, str):
+            media_urls = [media_urls_str]
+        else:
+            media_urls = media_urls_str
+        
+        result = await send_twilio_message(phone_number, message, media_urls if media_urls else None)
+        
+        if not result["success"]:
+            raise HTTPException(status_code=500, detail=result.get("error", "Failed to send message"))
+        
+        # Store in database
+        message_dict = {
+            "recipient_phone": phone_number,
+            "message_body": message,
+            "media_attachments": [{"media_url": url, "media_type": "unknown"} for url in (media_urls or [])],
+            "sender_number": settings.TWILIO_WHATSAPP_NUMBER,
+            "provider": provider,
+            "provider_message_id": result["message_id"],
+            "status": MessageStatus.SENT.value,
+            "created_at": datetime.utcnow().isoformat(),
+            "sent_at": datetime.utcnow().isoformat(),
+            "source": "n8n"
+        }
+        
+        await db.messages.insert_one(message_dict)
+        
+        return {
+            "success": True,
+            "message_id": result["message_id"],
+            "status": "sent",
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"n8n send message error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.post("/n8n/send-bulk")
+async def n8n_send_bulk_messages(
+    request: dict,
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    n8n compatible endpoint for sending bulk WhatsApp messages
+    
+    Request body:
+    {
+        "recipients": ["+1234567890", "+0987654321"],
+        "message": "Your message here",
+        "media_urls": ["https://example.com/image.jpg"] (optional),
+        "campaign_name": "My Campaign" (optional),
+        "provider": "twilio" (optional)
+    }
+    """
+    try:
+        recipients = request.get("recipients", [])
+        message = request.get("message")
+        media_urls = request.get("media_urls", [])
+        campaign_name = request.get("campaign_name", f"n8n Campaign {datetime.utcnow().strftime('%Y-%m-%d %H:%M')}")
+        provider = request.get("provider", "twilio")
+        
+        if not recipients or not message:
+            raise HTTPException(status_code=400, detail="recipients and message are required")
+        
+        campaign_id = str(uuid.uuid4())
+        
+        # Create campaign
+        campaign_dict = {
+            "id": campaign_id,
+            "name": campaign_name,
+            "message_body": message,
+            "media_attachments": [{"media_url": url, "media_type": "unknown"} for url in media_urls],
+            "recipients": recipients,
+            "provider": provider,
+            "created_at": datetime.utcnow().isoformat(),
+            "sent_at": datetime.utcnow().isoformat(),
+            "total_recipients": len(recipients),
+            "successful_sends": 0,
+            "failed_sends": 0,
+            "status": "sending",
+            "source": "n8n"
+        }
+        
+        await db.campaigns.insert_one(campaign_dict)
+        
+        successful_sends = 0
+        failed_sends = 0
+        
+        for recipient in recipients:
+            try:
+                result = await send_twilio_message(recipient, message, media_urls if media_urls else None)
+                
+                message_dict = {
+                    "recipient_phone": recipient,
+                    "message_body": message,
+                    "media_attachments": [{"media_url": url, "media_type": "unknown"} for url in media_urls],
+                    "sender_number": settings.TWILIO_WHATSAPP_NUMBER,
+                    "provider": provider,
+                    "provider_message_id": result.get("message_id"),
+                    "status": MessageStatus.SENT.value if result["success"] else MessageStatus.FAILED.value,
+                    "created_at": datetime.utcnow().isoformat(),
+                    "sent_at": datetime.utcnow().isoformat() if result["success"] else None,
+                    "campaign_id": campaign_id,
+                    "error_message": result.get("error") if not result["success"] else None,
+                    "source": "n8n"
+                }
+                
+                await db.messages.insert_one(message_dict)
+                
+                if result["success"]:
+                    successful_sends += 1
+                else:
+                    failed_sends += 1
+                    
+            except Exception as e:
+                logger.error(f"Failed to send to {recipient}: {str(e)}")
+                failed_sends += 1
+        
+        # Update campaign
+        await db.campaigns.update_one(
+            {"id": campaign_id},
+            {
+                "$set": {
+                    "successful_sends": successful_sends,
+                    "failed_sends": failed_sends,
+                    "status": "completed",
+                    "completed_at": datetime.utcnow().isoformat()
+                }
+            }
+        )
+        
+        return {
+            "success": True,
+            "campaign_id": campaign_id,
+            "total_recipients": len(recipients),
+            "successful": successful_sends,
+            "failed": failed_sends,
+            "timestamp": datetime.utcnow().isoformat()
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"n8n bulk send error: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@api_router.get("/n8n/campaign-status/{campaign_id}")
+async def n8n_get_campaign_status(
+    campaign_id: str,
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """Get campaign status for n8n workflows"""
+    campaign = await db.campaigns.find_one({"id": campaign_id}, {"_id": 0})
+    if not campaign:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    
+    return campaign
+
+@api_router.post("/n8n/webhook-register")
+async def n8n_register_webhook(
+    request: dict,
+    db: AsyncIOMotorDatabase = Depends(get_database)
+):
+    """
+    Register n8n webhook URL to receive notifications
+    
+    Request body:
+    {
+        "webhook_url": "https://your-n8n-instance.com/webhook/...",
+        "events": ["message_sent", "message_delivered", "message_failed"]
+    }
+    """
+    webhook_url = request.get("webhook_url")
+    events = request.get("events", ["message_sent", "message_delivered", "message_failed"])
+    
+    if not webhook_url:
+        raise HTTPException(status_code=400, detail="webhook_url is required")
+    
+    webhook_config = {
+        "webhook_url": webhook_url,
+        "events": events,
+        "created_at": datetime.utcnow().isoformat(),
+        "is_active": True
+    }
+    
+    await db.n8n_webhooks.update_one(
+        {"webhook_url": webhook_url},
+        {"$set": webhook_config},
+        upsert=True
+    )
+    
+    return {
+        "success": True,
+        "message": "Webhook registered successfully"
+    }
+
 # Include the router in the main app
 app.include_router(api_router)
 
