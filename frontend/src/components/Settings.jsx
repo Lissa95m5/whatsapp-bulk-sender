@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { Settings as SettingsIcon, Key } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Settings as SettingsIcon, Key, MessageSquare } from 'lucide-react';
 import axios from 'axios';
 import { toast } from 'sonner';
 
@@ -18,7 +19,13 @@ export function Settings() {
     whatsapp_number: '',
     is_active: false
   });
+  const [baileysConfig, setBaileysConfig] = useState({
+    phone_number: '',
+    session_name: '',
+    is_active: false
+  });
   const [isSaving, setIsSaving] = useState(false);
+  const [selectedProvider, setSelectedProvider] = useState('twilio');
 
   const handleSaveTwilio = async () => {
     setIsSaving(true);
